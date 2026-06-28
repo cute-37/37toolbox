@@ -1,4 +1,6 @@
 // @author: codex | phase: v0.2 | core: plugin-manager
+import React from 'react';
+
 import { builtinPluginRegistry } from './pluginRegistry';
 import { BUILTIN_CATEGORIES, FALLBACK_CATEGORY, sortCategories } from './types';
 import type { CategoryDef, InstalledPackage, MarketCache, PacketManifest, PluginManagerAPI, PluginRegistryEntry, RemoteMarketIndex, RemoteToolEntry, ToolManifest, ToolModule } from './types';
@@ -496,9 +498,10 @@ export class PluginManager implements PluginManagerAPI {
   }
 
   private async registerExternalPlugin(pluginsDir: string, pluginDir: string): Promise<void> {
-    const candidates = ['index.js', 'index.mjs'].map((fileName) => toFileUrl(`${pluginsDir}\\${pluginDir}\\${fileName}`));
-    for (const moduleUrl of candidates) {
-      const module = await importExternalModule(moduleUrl);
+    const candidates = ['index.js', 'index.mjs'].map((fileName) => `${pluginsDir}\\${pluginDir}\\${fileName}`);
+    for (const modulePath of candidates) {
+      const moduleUrl = toFileUrl(modulePath);
+      const module = await importExternalModule(moduleUrl, modulePath);
       if (!module) {
         continue;
       }
@@ -680,13 +683,32 @@ function isPacketManifest(value: unknown): value is PacketManifest {
     && isToolManifest(value.tool);
 }
 
-async function importExternalModule(moduleUrl: string): Promise<ToolModule | null> {
+async function importExternalModule(moduleUrl: string, modulePath?: string): Promise<ToolModule | null> {
+  let importUrl = moduleUrl;
   try {
-    const module: unknown = await import(/* @vite-ignore */ moduleUrl);
+    exposeReactForExternalPlugins();
+    const source = modulePath && window.toolbox?.file?.read ? await window.toolbox.file.read(modulePath) : null;
+    importUrl = typeof source === 'string' && source.trim()
+      ? URL.createObjectURL(new Blob([source], { type: 'text/javascript' }))
+      : moduleUrl;
+    const module: unknown = await import(/* @vite-ignore */ importUrl);
+    if (importUrl !== moduleUrl) {
+      window.setTimeout(() => URL.revokeObjectURL(importUrl), 1000);
+    }
     return isToolModule(module) ? module : null;
-  } catch {
+  } catch (error) {
+    console.error('外部插件模块导入失败', moduleUrl, error);
     return null;
   }
+}
+
+function exposeReactForExternalPlugins(): void {
+  const target = window as typeof window & {
+    React?: typeof React;
+    __37toolbox_react?: typeof React;
+  };
+  target.__37toolbox_react = React;
+  target.React = target.React ?? React;
 }
 
 function isToolModule(value: unknown): value is ToolModule {

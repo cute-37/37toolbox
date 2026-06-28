@@ -217,6 +217,7 @@ async function extractPackage(zip: AdmZip, packet: PacketManifest, targetDir: st
   const entryPath = normalizeZipPath(packet.entry);
   const entryExt = entryPath.endsWith('.mjs') ? 'mjs' : 'js';
   const originalEntryPath = entryPath === `index.${entryExt}` ? `__37tool_original.${entryExt}` : entryPath;
+  let originalSource = '';
 
   for (const entry of zip.getEntries()) {
     if (entry.isDirectory) {
@@ -227,33 +228,35 @@ async function extractPackage(zip: AdmZip, packet: PacketManifest, targetDir: st
       continue;
     }
     const writeRelPath = relPath === entryPath ? originalEntryPath : relPath;
+    if (relPath === entryPath) {
+      originalSource = entry.getData().toString('utf-8');
+    }
     const targetPath = resolve(targetDir, writeRelPath);
     ensureInside(targetDir, targetPath);
     await mkdir(dirname(targetPath), { recursive: true });
     await writeFile(targetPath, entry.getData());
   }
 
+  if (!originalSource) {
+    throw new Error(`入口文件为空或无法读取: ${entryPath}`);
+  }
+
   const bootstrapPath = resolve(targetDir, 'index.js');
   ensureInside(targetDir, bootstrapPath);
-  await writeFile(bootstrapPath, createBootstrap(packet, originalEntryPath), 'utf-8');
+  await writeFile(bootstrapPath, createBootstrap(packet, originalSource), 'utf-8');
 }
 
-function createBootstrap(packet: PacketManifest, entryPath: string): string {
+function createBootstrap(packet: PacketManifest, source: string): string {
   const wrapper = generatePermissionWrapper(packet.permissions);
-  const manifest = {
-    ...packet.tool,
-    external: packet.tool.external ?? false,
-  };
   return `${wrapper}
 
-import React from 'react';
-window.__37toolbox_react = React;
+const React = window.__37toolbox_react || window.React;
+if (!React) {
+  throw new Error('React runtime is not available for external plugin');
+}
 window.React = window.React || React;
 
-export const manifest = ${JSON.stringify(manifest, null, 2)};
-const module = await import(${JSON.stringify(`./${entryPath}`)});
-const component = module.default ?? (() => null);
-export default component;
+${source}
 `;
 }
 

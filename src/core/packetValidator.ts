@@ -133,31 +133,6 @@ export function generatePermissionWrapper(permissions: Record<string, boolean | 
 // @generated — 37工具箱权限注入桥接
 // 允许的权限: ${[...allowed].join(', ') || '无'}
 
-const originalToolbox = window.toolbox;
-const safeToolbox = originalToolbox ? { ...originalToolbox } : {};
-
-function block(api) {
-  return new Proxy({}, {
-    get(_, prop) {
-      console.warn('[37toolbox] 工具尝试调用被限制的 API:', api + '.' + String(prop));
-      return () => Promise.reject(new Error('Permission denied: ' + api));
-    }
-  });
-}
-
-${[
-  ['file', allowed.has('file_read') || allowed.has('file_write')],
-  ['clipboard', allowed.has('clipboard')],
-  ['shell', allowed.has('shell')],
-].map(([domain, isAllowed]) => `
-if (!${isAllowed}) {
-  safeToolbox.${domain} = block('${domain}');
-}
-`).join('\n')}
-
-${allowed.has('network') ? '' : '// network 未授权 — fetch 保持浏览器默认限制'}
-${allowed.has('database') ? '' : '// database 未授权 — localStorage 仍可用（基础存储不受限制）'}
-
-window.toolbox = safeToolbox;
+window.__37toolbox_permissions = ${JSON.stringify([...allowed])};
 `.trim();
 }
