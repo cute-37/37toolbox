@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-electron/
+release/
+
+# Runtime data
+db/
+downloads/
+logs/
+temp/
+avatars/
+settings.json
+工具开发/pixiv-downloader/db/
+
+# Environment
+.env
+.env.local
+
+# System
+.DS_Store
+Thumbs.db
+*.log
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

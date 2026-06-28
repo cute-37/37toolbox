@@ -1,0 +1,6 @@
+pixivpy3
+requests
+tqdm
+pysmb
+paramiko
+boto3

@@ -1,0 +1,34 @@
+# @author: codex | phase: 1 | config: electron-builder
+appId: com.37toolbox.app
+productName: 37工具箱
+directories:
+  output: release
+publish:
+  provider: github
+  repo: 37toolbox
+  owner: cute-37
+files:
+  - dist/**
+  - dist-electron/**
+  - resources/**
+  - package.json
+extraResources:
+  - from: 工具开发/pixiv-downloader
+    to: 工具开发/pixiv-downloader
+    filter:
+      - "**/*"
+      - "!__pycache__/**"
+      - "!db/**"
+      - "!*.pyc"
+win:
+  icon: resources/icon.ico
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+mac:
+  icon: resources/icon.png
+  target:
+    - dmg

@@ -1,0 +1,18 @@
+// @author: frontend-ai | phase: 2 | component: shared-index
+export { Button } from './Button';
+export type { ButtonProps } from './Button';
+export { ContextMenu } from './ContextMenu';
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
+export { Input } from './Input';
+export type { InputProps } from './Input';
+export { PermissionDialog } from './PermissionDialog';
+export type { PermissionDialogProps } from './PermissionDialog';
+export { Select } from './Select';
+export type { SelectOption, SelectProps } from './Select';
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
+export { TextArea } from './TextArea';
+export type { TextAreaProps } from './TextArea';
+export { Tooltip } from './Tooltip';
+export type { TooltipProps } from './Tooltip';

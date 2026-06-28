@@ -1,0 +1,46 @@
+{
+  "name": "37-toolbox",
+  "private": true,
+  "version": "0.1.0",
+  "description": "37工具箱 — 一个可扩展的桌面工具箱，内置时间戳转换、密码生成、单位换算等 13 个实用小工具",
+  "author": "Cowork3P",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "package": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "diff": "^5.2.0",
+    "highlight.js": "^11.10.0",
+    "lucide-react": "^0.400.0",
+    "marked": "^13.0.3",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "@types/diff": "^5.2.2",
+    "@types/node": "^20.14.10",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "adm-zip": "^0.5.17",
+    "autoprefixer": "^10.4.19",
+    "electron": "^31.2.1",
+    "electron-builder": "^24.13.3",
+    "electron-updater": "^6.8.9",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vite-plugin-electron": "^0.28.7"
+  }
+}

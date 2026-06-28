@@ -1,0 +1,403 @@
+/* @author: codex | phase: 1 | style: globals */
+/* @author: claude | phase: 5 | style: font-vars + base-reset */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes contextMenuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ====== Design Token CSS 变量 ====== */
+
+:root {
+  /* 背景 */
+  --bg-primary: #f6f0df;
+  --bg-secondary: rgba(255, 251, 241, 0.82);
+  --bg-sidebar: rgba(237, 245, 244, 0.74);
+  --bg-chrome: #fbf6e8;
+  --bg-hover: rgba(126, 179, 176, 0.16);
+  --bg-active: rgba(126, 179, 176, 0.24);
+
+  /* 边框 */
+  --border: rgba(183, 154, 92, 0.28);
+  --border-light: rgba(112, 155, 166, 0.36);
+
+  /* 文字 */
+  --text-primary: #38414a;
+  --text-secondary: #697783;
+  --text-muted: #9aa4aa;
+
+  /* 37-inspired 强调色：象牙、星金、海蓝 */
+  --accent: #b88c42;
+  --accent-hover: #967037;
+  --accent-subtle: rgba(184, 140, 66, 0.13);
+  --accent-cyan: #78b8c5;
+  --accent-cyan-subtle: rgba(120, 184, 197, 0.16);
+  --accent-teal: #4f8f89;
+  --accent-ivory: #fff9e9;
+  --geometry-line: rgba(184, 140, 66, 0.24);
+  --geometry-blue-line: rgba(120, 184, 197, 0.24);
+  --diff-added-bg: rgba(77, 171, 119, 0.16);
+  --diff-removed-bg: rgba(224, 85, 85, 0.16);
+
+  /* 状态色 */
+  --success: #4d9b74;
+  --error: #c95f5f;
+  --warning: #b88c42;
+  --info: #5c9eb0;
+
+  /* 字体（CSS 变量 + 回退栈） */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(115, 91, 45, 0.12);
+  --shadow-md: 0 8px 24px rgba(115, 91, 45, 0.12);
+  --shadow-lg: 0 18px 42px rgba(115, 91, 45, 0.16);
+}
+
+/* ====== 暗色主题（备用） ====== */
+
+:root.dark {
+  --bg-primary: #101522;
+  --bg-secondary: #171d2b;
+  --bg-sidebar: #0b101b;
+  --bg-chrome: #080d17;
+  --bg-hover: #20283a;
+  --bg-active: #273148;
+  --border: #283249;
+  --border-light: #3b4a68;
+  --text-primary: #f3efe4;
+  --text-secondary: #aab3c7;
+  --text-muted: #6f7890;
+  --accent: #d8b46f;
+  --accent-hover: #efcf8c;
+  --accent-subtle: rgba(216, 180, 111, 0.16);
+  --accent-cyan: #8fd8e8;
+  --accent-cyan-subtle: rgba(143, 216, 232, 0.15);
+  --accent-teal: #62aaa5;
+  --accent-ivory: #fff4dd;
+  --geometry-line: rgba(216, 180, 111, 0.22);
+  --geometry-blue-line: rgba(143, 216, 232, 0.16);
+  --diff-added-bg: rgba(77, 171, 119, 0.12);
+  --diff-removed-bg: rgba(224, 85, 85, 0.12);
+}
+
+/* ====== Base 层重置 ====== */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  input,
+  textarea,
+  pre,
+  code,
+  [contenteditable='true'],
+  .select-text {
+    user-select: text;
+  }
+
+  button,
+  select,
+  label,
+  summary {
+    user-select: none;
+  }
+
+  /* 暗色细滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+  }
+
+  /* 全局焦点环 */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .app-shell {
+    position: relative;
+    isolation: isolate;
+    transition: background-color 1s ease;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(120, 184, 197, 0.24), transparent 27%),
+      radial-gradient(circle at 78% 4%, rgba(255, 249, 233, 0.82), transparent 30%),
+      linear-gradient(135deg, rgba(120, 184, 197, 0.12), transparent 34%),
+      linear-gradient(315deg, rgba(184, 140, 66, 0.1), transparent 36%),
+      var(--bg-primary);
+  }
+
+  .app-shell::before {
+    content: '';
+    position: absolute;
+    inset: 36px 0 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.42;
+    background-image:
+      linear-gradient(115deg, transparent 0 46%, var(--geometry-line) 46% 46.35%, transparent 46.35%),
+      linear-gradient(65deg, transparent 0 53%, var(--geometry-blue-line) 53% 53.3%, transparent 53.3%),
+      repeating-linear-gradient(90deg, transparent 0 68px, rgba(184, 140, 66, 0.045) 68px 69px),
+      repeating-linear-gradient(0deg, transparent 0 68px, rgba(120, 184, 197, 0.04) 68px 69px);
+  }
+
+  .app-shell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  .titlebar {
+    -webkit-app-region: drag;
+    background: var(--bg-chrome);
+    transition: background-color 1s ease;
+    backdrop-filter: blur(16px);
+  }
+
+  .titlebar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(120, 184, 197, 0.18), transparent 24%),
+      linear-gradient(270deg, rgba(184, 140, 66, 0.12), transparent 30%);
+  }
+
+  :root.dark .titlebar::after {
+    background:
+      linear-gradient(90deg, rgba(143, 216, 232, 0.12), transparent 24%),
+      linear-gradient(270deg, rgba(216, 180, 111, 0.1), transparent 30%);
+  }
+
+  .titlebar-drag {
+    -webkit-app-region: drag;
+  }
+
+  .titlebar-no-drag,
+  .titlebar button {
+    -webkit-app-region: no-drag;
+  }
+
+  .titlebar-control {
+    display: inline-flex;
+    width: 46px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  .titlebar-control:hover {
+    background: var(--bg-hover);
+    color: var(--accent-ivory);
+  }
+
+  .titlebar-brand-name {
+    color: #4f5e69;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+
+  :root.dark .titlebar-brand-name {
+    color: var(--accent-ivory);
+    text-shadow: none;
+  }
+
+  .titlebar-close:hover {
+    background: var(--error);
+    color: #ffffff;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 8px 22px rgba(184, 140, 66, 0.18);
+  }
+
+  .brand-mark {
+    position: relative;
+    display: inline-flex;
+    width: 36px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--geometry-line);
+    border-radius: var(--radius-sm);
+    color: var(--accent-ivory);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    background:
+      radial-gradient(circle at 72% 25%, var(--accent-cyan-subtle), transparent 30%),
+      linear-gradient(135deg, var(--accent-subtle), transparent 48%),
+      var(--bg-secondary);
+    box-shadow: inset 0 0 0 1px rgba(255, 244, 221, 0.06), 0 0 18px rgba(143, 216, 232, 0.08);
+  }
+
+  .brand-mark::after {
+    content: '';
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 5px;
+    height: 5px;
+    border-right: 1px solid var(--accent-cyan);
+    border-top: 1px solid var(--accent-cyan);
+    transform: rotate(45deg);
+  }
+
+  .brand-orbit {
+    position: relative;
+    display: inline-flex;
+    width: 28px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--geometry-line);
+    border-radius: 50%;
+    color: var(--accent-ivory);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    background: radial-gradient(circle, rgba(143, 216, 232, 0.14), transparent 58%);
+  }
+
+  .brand-orbit::before,
+  .brand-orbit::after {
+    content: '';
+    position: absolute;
+    inset: 4px -3px;
+    border-top: 1px solid var(--accent-cyan);
+    border-radius: 50%;
+    transform: rotate(-24deg);
+    opacity: 0.72;
+  }
+
+  .brand-orbit::after {
+    inset: -2px 5px;
+    border-color: var(--geometry-line);
+    transform: rotate(54deg);
+  }
+
+  .prose-preview {
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+  }
+
+  .prose-preview h1,
+  .prose-preview h2,
+  .prose-preview h3 {
+    margin: 0 0 12px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .prose-preview p,
+  .prose-preview ul,
+  .prose-preview ol,
+  .prose-preview pre,
+  .prose-preview table {
+    margin: 0 0 12px;
+  }
+
+  .prose-preview code,
+  .prose-preview pre {
+    font-family: var(--font-mono);
+  }
+
+  .prose-preview pre {
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-sidebar);
+    padding: 12px;
+  }
+
+  .prose-preview table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .prose-preview th,
+  .prose-preview td {
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+  }
+}
+
+/* ====== 主题切换过渡 (unlayered, 优先级 > Tailwind utilities) ====== */
+
+/* 顶层容器 */
+html, body, #root, .app-shell {
+  transition: background-color 1s ease, color 0.6s ease;
+}
+
+/* 所有后代元素: 只延长 duration, 不动 transition-property。
+   无层叠 = 最高优先级, 覆盖 Tailwind transition class 的 150ms。 */
+.app-shell *,
+.app-shell *::before,
+.app-shell *::after {
+  transition-duration: 1s, 1s, 1s, 1s, 1s, 0.6s;
+}
