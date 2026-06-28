@@ -13,7 +13,14 @@
       "author": "cute-37",
       "category": "download",
       "icon": "download",
-      "tags": ["pixiv", "download", "illust", "ugoira", "novel", "sync"],
+      "tags": [
+        "pixiv",
+        "download",
+        "illust",
+        "ugoira",
+        "novel",
+        "sync"
+      ],
       "download_url": "https://github.com/cute-37/37toolbox/releases/latest/download/pixiv-downloader.37tool",
       "size_bytes": 18432,
       "sha256": "",
@@ -37,10 +44,16 @@
       "author": "cute-37",
       "category": "daily",
       "icon": "calendar",
-      "tags": ["anime", "tracker", "schedule", "yuc", "season"],
-      "download_url": "https://github.com/cute-37/37toolbox/releases/latest/download/anime-tracker.37tool",
-      "size_bytes": 12288,
-      "sha256": "",
+      "tags": [
+        "anime",
+        "tracker",
+        "schedule",
+        "yuc",
+        "season"
+      ],
+      "download_url": "https://github.com/cute-37/37toolbox/releases/download/v0.5.0/anime-tracker-v0.5.0.37tool",
+      "size_bytes": 6517,
+      "sha256": "9ae7392afe4514a8bbaf7a94fecd308b5606178048d94e00a28785fd9aac9b07",
       "created_at": "2026-06-28",
       "min_toolbox_version": "0.4.0",
       "permissions": {
