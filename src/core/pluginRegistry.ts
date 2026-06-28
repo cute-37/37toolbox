@@ -3,7 +3,7 @@
 import type { PluginRegistryEntry } from './types';
 
 import { manifest as base64Manifest } from '../plugins/base64/engine';
-import { manifest as pixivDownloaderManifest } from '../plugins/pixiv-downloader/manifest';
+import { manifest as pixivDownloaderManifest } from '../plugins/pixiv-downloader/manifest'; // keep as builtin - needs Python bridge
 import { manifest as calculatorManifest } from '../plugins/calculator/engine';
 import { manifest as colorPickerManifest } from '../plugins/color-picker/engine';
 import { manifest as downloaderManifest } from '../plugins/downloader/engine';

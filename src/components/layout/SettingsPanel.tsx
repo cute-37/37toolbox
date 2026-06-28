@@ -779,9 +779,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onClose, ini
   }[section]!;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/25" onPointerDown={onClose}>
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/10 pointer-events-none" onPointerDown={onClose}>
       <div
-        className="titlebar-no-drag flex h-[640px] max-h-[calc(100vh-80px)] w-[800px] max-w-[calc(100vw-48px)] overflow-hidden rounded-xl border border-border bg-bg-sidebar shadow-2xl"
+        className="titlebar-no-drag flex h-[640px] max-h-[calc(100vh-80px)] w-[800px] max-w-[calc(100vw-48px)] overflow-hidden rounded-xl border border-border bg-bg-sidebar shadow-2xl pointer-events-auto"
         onPointerDown={(e): void => e.stopPropagation()}
       >
         {/* Sidebar */}
