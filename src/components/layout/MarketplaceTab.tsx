@@ -245,7 +245,12 @@ export const MarketplaceTab: React.FC = () => {
         {remoteLoading ? (
           <div className="mt-4 flex items-center justify-center py-8"><p className="text-sm text-text-muted">正在加载远程市场...</p></div>
         ) : remoteError ? (
-          <div className="mt-4 text-xs text-status-error">{remoteError} <button className="underline" onClick={() => window.location.reload()}>重试</button></div>
+          <div className="mt-4 flex flex-col items-center gap-2 rounded-md border border-border bg-bg-secondary py-8">
+            <ToolIcon name="inbox" size={26} className="text-text-muted" />
+            <p className="text-xs text-text-secondary">远程市场暂不可用</p>
+            <p className="text-2xs text-text-muted max-w-xs text-center">代码推送至 GitHub 后自动生效。<br />当前获取的地址将在发布后可用。</p>
+            <button className="mt-2 text-xs text-accent-cyan underline" onClick={() => window.location.reload()}>重试</button>
+          </div>
         ) : remoteTools.length === 0 && remoteIndex ? (
           <EmptyState icon="inbox" title={remoteSearch ? '未找到匹配工具' : '没有可安装的工具'} description={remoteSearch ? undefined : '所有远程工具已安装，或者市场暂时为空。'} />
         ) : remoteTools.length > 0 ? (

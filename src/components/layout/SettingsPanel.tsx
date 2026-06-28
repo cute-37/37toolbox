@@ -773,6 +773,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onClose, ini
     tools: ToolsSection,
     marketplace: MarketplaceTab,
     categories: CategoriesSection,
+    backup: BackupSection,
     diagnostics: DiagnosticsSection,
     about: AboutSection,
   }[section]!;

@@ -42,6 +42,7 @@ interface Window {
       pickScreen: () => Promise<string | null>;
     };
     market?: {
+      fetchIndex: (url: string) => Promise<{ ok: boolean; index?: unknown; error?: string }>;
       inspectPackage: (path: string) => Promise<{ ok: boolean; packet?: unknown; error?: string }>;
       installPackage: (sourcePath: string, expectedId: string) => Promise<{ ok: boolean; installed?: unknown; packet?: unknown; error?: string }>;
       downloadPackage: (url: string) => Promise<{ ok: boolean; path?: string; error?: string }>;

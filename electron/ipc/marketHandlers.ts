@@ -74,7 +74,7 @@ export function registerMarketHandlers(): void {
         return { ok: false, error: '缺少 marketplace_url' };
       }
 
-      return { ok: true, index: obj as RemoteMarketIndex };
+      return { ok: true, index: obj as unknown as RemoteMarketIndex };
     } catch (error) {
       return { ok: false, error: toErrorMessage(error) };
     }

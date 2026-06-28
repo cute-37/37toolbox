@@ -40,8 +40,10 @@ const windowConfig: BrowserWindowConstructorOptions = {
   minHeight: 600,
   title: '37工具箱',
   icon: APP_ICON_PATH,
+  backgroundColor: '#f6f0df',
   frame: false,
   thickFrame: false,
+  show: true,
   webPreferences: {
     preload: join(ROOT, 'dist-electron/preload.mjs'),
     contextIsolation: true,
