@@ -10,7 +10,7 @@ if not TOKEN:
     sys.exit(1)
 
 VERSION = "v0.5.0"
-TOOLS = ["anime-tracker", "pixiv-downloader"]
+TOOLS = ["anime-tracker"]  # pixiv-downloader is builtin (needs Python bridge)
 
 def pack(tool_id):
     src = os.path.join("packages", tool_id)

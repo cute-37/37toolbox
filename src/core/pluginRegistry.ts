@@ -3,6 +3,7 @@
 import type { PluginRegistryEntry } from './types';
 
 import { manifest as base64Manifest } from '../plugins/base64/engine';
+import { manifest as pixivDownloaderManifest } from '../plugins/pixiv-downloader/manifest';
 import { manifest as calculatorManifest } from '../plugins/calculator/engine';
 import { manifest as colorPickerManifest } from '../plugins/color-picker/engine';
 import { manifest as downloaderManifest } from '../plugins/downloader/engine';
@@ -30,5 +31,6 @@ export const builtinPluginRegistry: PluginRegistryEntry[] = [
   { manifest: base64Manifest, loader: () => import('../plugins/base64/Tool'), builtin: true },
   { manifest: regexTestManifest, loader: () => import('../plugins/regex-test/Tool'), builtin: true },
   { manifest: downloaderManifest, loader: () => import('../plugins/downloader/Tool'), builtin: true },
+  { manifest: pixivDownloaderManifest, loader: () => import('../plugins/pixiv-downloader/Tool'), builtin: true },
 ];
 
