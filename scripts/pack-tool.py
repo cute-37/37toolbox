@@ -13,11 +13,13 @@ def pack(tool_id):
         manifest = json.load(f)
 
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for root, dirs, files in os.walk(src):
+        for root, _dirs, files in os.walk(src):
             for name in files:
                 fpath = os.path.join(root, name)
-                arcname = os.path.relpath(fpath, src)
+                # ⚠️ 必须用 / 分隔，否则 marketHandlers 的 normalizeZipPath 匹配不上
+                arcname = os.path.relpath(fpath, src).replace("\\", "/")
                 z.write(fpath, arcname)
+                print(f"    + {arcname}")
 
     size = os.path.getsize(out)
     entry = manifest.get("entry", "index.js")
