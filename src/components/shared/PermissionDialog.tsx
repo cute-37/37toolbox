@@ -34,7 +34,7 @@ export const PermissionDialog: React.FC<PermissionDialogProps> = ({ rawManifest,
   const toolName = manifest?.tool.name ?? fallbackName;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80" onPointerDown={onCancel}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50" onPointerDown={onCancel}>
       <div
         className="w-[440px] max-w-[calc(100vw-48px)] rounded-lg border border-border bg-bg-secondary p-6 shadow-xl"
         onPointerDown={(event): void => event.stopPropagation()}
