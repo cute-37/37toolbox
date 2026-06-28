@@ -102,7 +102,7 @@ interface ConfirmDialogProps {
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ title, message, confirmLabel = '确认', danger, onConfirm, onCancel }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onPointerDown={onCancel}>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onPointerDown={onCancel}>
     <div
       className="w-[380px] max-w-[calc(100vw-48px)] rounded-lg border border-border bg-bg-secondary p-6 shadow-xl"
       onPointerDown={(e): void => e.stopPropagation()}
@@ -779,7 +779,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onClose, ini
   }[section]!;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/20" onPointerDown={onClose}>
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80" onPointerDown={onClose}>
       <div
         className="titlebar-no-drag flex h-[640px] max-h-[calc(100vh-80px)] w-[800px] max-w-[calc(100vw-48px)] overflow-hidden rounded-xl border border-border bg-bg-sidebar shadow-2xl"
         onPointerDown={(e): void => e.stopPropagation()}

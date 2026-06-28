@@ -5,7 +5,7 @@
 // ================================================================
 
 import { existsSync } from 'node:fs';
-import { spawn, ChildProcess } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
 import { app, ipcMain } from 'electron';
 
@@ -37,8 +37,17 @@ function getPythonPath(): string {
   return 'python3';
 }
 
-/** 返回 bridge.py 路径 */
+/** 返回 bridge.py 路径 — 按优先级查找多处 */
 function getBridgePath(projectRoot: string): string {
+  const candidates = [
+    join(projectRoot, '工具开发', 'pixiv-downloader', 'bridge.py'),       // 开发环境
+    join(app.getPath('home'), '37工具箱', 'plugins', 'pixiv-downloader', 'bridge.py'), // 插件安装
+    join(app.getPath('exe'), '..', 'resources', 'pixiv-downloader', 'bridge.py'),     // 打包后 resources
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) return p;
+  }
+  // fallback to original
   return join(projectRoot, '工具开发', 'pixiv-downloader', 'bridge.py');
 }
 

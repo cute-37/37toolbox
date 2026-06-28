@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "tool": {
     "id": "pixiv-downloader",
-    "name": "Pixiv 下载",
+    "name": "Pixiv下载",
     "description": "Pixiv 画师作品下载与同步",
     "category": "download",
     "version": "2.0.0",

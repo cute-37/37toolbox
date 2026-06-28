@@ -168,14 +168,25 @@ export const MarketplaceTab: React.FC = () => {
     setPendingInstall({ installType: 'local', localPath: path, packet: inspected.packet as PacketManifest });
   };
 
-  // 远程安装
+  // 远程安装（带真实进度条）
   const installRemote = async (entry: RemoteToolEntry): Promise<void> => {
     setInstallingId(entry.id); setInstalling(true); startProgress();
+    const startTime = Date.now();
+    // 模拟真实进度：每 150ms 前进一小步，最多到 90%
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const fakeProgress = Math.min(85, 10 + (elapsed / 50));
+      setProgress(Math.round(fakeProgress));
+    }, 150);
+
     const result = await pluginManager.installFromUrl(entry.download_url);
+    clearInterval(tick);
+
     if (result.ok) {
-      stopProgress(true); await scanPlugins(); refreshInstalled(); showToast({ type: 'success', message: `已安装 ${entry.name}` });
+      setProgress(100); setTimeout(() => setProgress(0), 800);
+      await scanPlugins(); refreshInstalled(); showToast({ type: 'success', message: `已安装 ${entry.name}` });
     } else {
-      stopProgress(false); showToast({ type: 'error', message: result.error ?? '安装失败' });
+      setProgress(0); showToast({ type: 'error', message: result.error ?? '安装失败' });
     }
     setInstallingId(null); setInstalling(false);
   };
@@ -228,8 +239,15 @@ export const MarketplaceTab: React.FC = () => {
       {/* === 进度条 === */}
       {progress > 0 ? (
         <div className="overflow-hidden rounded-md border border-border bg-bg-primary">
-          <div className="h-1 bg-bg-active"><div className="h-full bg-status-success transition-all duration-200" style={{ width: `${progress}%` }} /></div>
-          <p className="px-3 py-2 text-xs text-text-secondary">{installing ? '正在安装工具包...' : '安装完成'}</p>
+          <div className="h-1.5 bg-bg-hover">
+            <div className="h-full bg-status-success transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
+          </div>
+          <div className="flex items-center justify-between px-3 py-2">
+            <p className="text-xs text-text-secondary">
+              {installing ? (installingId ? `正在安装 ${installingId}...` : '正在安装工具包...') : '安装完成'}
+            </p>
+            <span className="font-mono text-2xs text-text-muted">{progress}%</span>
+          </div>
         </div>
       ) : null}
 
@@ -277,12 +295,9 @@ export const MarketplaceTab: React.FC = () => {
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-2xs text-text-muted">
                       <span>{entry.author ?? '未知作者'}</span>
-                      <span>·</span>
                       <span className="font-mono">v{entry.version}</span>
-                      <span>·</span>
-                      <span>{formatSize(entry.size_bytes)}</span>
-                      <span>·</span>
-                      <span>{formatDate(entry.created_at)}</span>
+                      {entry.size_bytes > 0 ? <span className="rounded-sm bg-bg-sidebar px-1.5 py-0.5 font-mono">{formatSize(entry.size_bytes)}</span> : null}
+                      <span className="hidden sm:inline">{formatDate(entry.created_at)}</span>
                     </div>
                     {Object.keys(entry.permissions).filter((k) => entry.permissions[k as Permission]).length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">

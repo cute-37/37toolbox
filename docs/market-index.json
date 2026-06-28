@@ -2,28 +2,52 @@
   "version": 1,
   "updated": "2026-06-28",
   "name": "37工具箱 官方市场",
-  "description": "37工具箱的官方工具市场。社区贡献请提交 PR 修改本文件，并在 packages/ 下创建工具目录。",
+  "description": "37工具箱的官方工具市场。欢迎社区提交 PR 添加工具。",
   "marketplace_url": "https://raw.githubusercontent.com/cute-37/37toolbox/main/docs/market-index.json",
   "tools": [
     {
+      "id": "pixiv-downloader",
+      "name": "Pixiv下载",
+      "description": "Pixiv 画师作品下载与同步，支持动图/小说/多账号并发",
+      "version": "2.0.0",
+      "author": "cute-37",
+      "category": "download",
+      "icon": "download",
+      "tags": ["pixiv", "download", "illust", "ugoira", "novel", "sync"],
+      "download_url": "https://github.com/cute-37/37toolbox/releases/latest/download/pixiv-downloader.37tool",
+      "size_bytes": 18432,
+      "sha256": "",
+      "created_at": "2026-06-28",
+      "min_toolbox_version": "0.4.0",
+      "permissions": {
+        "file_read": true,
+        "file_write": true,
+        "clipboard": true,
+        "network": true,
+        "shell": true
+      },
+      "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/pixiv-downloader",
+      "notes": "需安装 Python 环境 (pixivpy3, requests, tqdm)。首次安装后请先在设置中配置 Python 路径。"
+    },
+    {
       "id": "anime-tracker",
       "name": "追番日程表",
-      "description": "制作属于自己的追番列表，导出为图片",
+      "description": "制作属于自己的追番列表，导出为精美图片",
       "version": "1.0.0",
       "author": "cute-37",
       "category": "daily",
       "icon": "calendar",
       "tags": ["anime", "tracker", "schedule", "yuc", "season"],
       "download_url": "https://github.com/cute-37/37toolbox/releases/latest/download/anime-tracker.37tool",
-      "size_bytes": 0,
+      "size_bytes": 12288,
+      "sha256": "",
       "created_at": "2026-06-28",
       "min_toolbox_version": "0.4.0",
       "permissions": {
         "network": true,
         "clipboard": true
       },
-      "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/anime-tracker",
-      "screenshots": []
+      "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/anime-tracker"
     }
   ]
 }

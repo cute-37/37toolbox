@@ -51,7 +51,7 @@ export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ triggerMes
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={onClose}>
       <div
         className="mx-4 max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-bg-secondary shadow-lg"
         onClick={(e) => e.stopPropagation()}
