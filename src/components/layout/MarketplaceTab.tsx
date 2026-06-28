@@ -109,16 +109,23 @@ export const MarketplaceTab: React.FC = () => {
   const refreshInstalled = (): void => setInstalled(getInstalledPackages());
   const installedIds = useMemo(() => new Set(installed.map((p) => p.id)), [installed]);
 
-  // 挂载时拉取远程市场
-  useEffect(() => {
+  const fetchRemote = (): void => {
     const urls = getCustomMarketUrls();
     if (urls.length === 0) return;
     setRemoteLoading(true); setRemoteError('');
     pluginManager.fetchRemoteIndex(urls[0]).then((result) => {
-      if (result.ok) { setRemoteIndex(result.index); setActiveMarketUrl(urls[0]); }
+      if (result.ok) { setRemoteIndex(result.index); setActiveMarketUrl(urls[0]); setRemoteError(''); }
       else setRemoteError(result.error);
       setRemoteLoading(false);
-    }).catch((err: unknown) => { setRemoteError(err instanceof Error ? err.message : '请求失败'); setRemoteLoading(false); });
+    }).catch((err: unknown) => {
+      setRemoteError(err instanceof Error ? err.message : '请求失败');
+      setRemoteLoading(false);
+    });
+  };
+
+  // 挂载时拉取远程市场
+  useEffect(() => {
+    fetchRemote();
     return () => { if (progressTimer.current) clearInterval(progressTimer.current); };
   }, []);
 
@@ -249,7 +256,7 @@ export const MarketplaceTab: React.FC = () => {
             <ToolIcon name="inbox" size={26} className="text-text-muted" />
             <p className="text-xs text-text-secondary">远程市场暂不可用</p>
             <p className="text-2xs text-text-muted max-w-xs text-center">代码推送至 GitHub 后自动生效。<br />当前获取的地址将在发布后可用。</p>
-            <button className="mt-2 text-xs text-accent-cyan underline" onClick={() => window.location.reload()}>重试</button>
+            <button className="mt-2 text-xs text-accent-cyan underline" onClick={() => { fetchRemote(); }}>重试</button>
           </div>
         ) : remoteTools.length === 0 && remoteIndex ? (
           <EmptyState icon="inbox" title={remoteSearch ? '未找到匹配工具' : '没有可安装的工具'} description={remoteSearch ? undefined : '所有远程工具已安装，或者市场暂时为空。'} />
