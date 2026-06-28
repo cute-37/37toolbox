@@ -537,36 +537,32 @@ export class PluginManager implements PluginManagerAPI {
 
   // ====== 远程市场 ======
 
-  /** 从远程 URL 拉取工具市场 index，含 5 分钟本地缓存。 */
+  /** 从远程 URL 拉取工具市场 index。失败时才回落到本地缓存，避免安装源长期停在旧地址。 */
   async fetchRemoteIndex(sourceUrl: string): Promise<{ ok: true; index: RemoteMarketIndex } | { ok: false; error: string }> {
     const marketApi = window.toolbox?.market;
     if (!marketApi) return { ok: false, error: '当前环境不支持远程市场' };
 
-    // 检查本地缓存
+    const result = await marketApi.fetchIndex(sourceUrl);
+    if (result.ok && result.index) {
+      const index = result.index as RemoteMarketIndex;
+      try {
+        localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({ sourceUrl, fetchedAt: new Date().toISOString(), index }));
+      } catch { /* storage full, ignore */ }
+      return { ok: true, index };
+    }
+
+    // 网络失败时再用缓存，让市场至少可浏览；但不会阻止下次重新请求远程。
     try {
       const cacheRaw = localStorage.getItem(MARKET_CACHE_KEY);
       if (cacheRaw) {
         const cache: MarketCache = JSON.parse(cacheRaw);
-        const age = Date.now() - new Date(cache.fetchedAt).getTime();
-        if (cache.sourceUrl === sourceUrl && age < 5 * 60 * 1000) {
+        if (cache.sourceUrl === sourceUrl) {
           return { ok: true, index: cache.index };
         }
       }
     } catch { /* cache invalid, refetch */ }
 
-    const result = await marketApi.fetchIndex(sourceUrl);
-    if (!result.ok || !result.index) {
-      return { ok: false, error: (result as { error?: string }).error ?? '获取市场数据失败' };
-    }
-
-    const index = result.index as RemoteMarketIndex;
-
-    // 写入缓存
-    try {
-      localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({ sourceUrl, fetchedAt: new Date().toISOString(), index }));
-    } catch { /* storage full, ignore */ }
-
-    return { ok: true, index };
+    return { ok: false, error: (result as { error?: string }).error ?? '获取市场数据失败' };
   }
 
   /** 获取缓存的远程市场数据（不发起请求）。 */

@@ -2,6 +2,8 @@
 import { Buffer } from 'node:buffer';
 import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
+import http from 'node:http';
+import https from 'node:https';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
 import AdmZip from 'adm-zip';
@@ -132,11 +134,7 @@ export function registerMarketHandlers(): void {
         return { ok: false, error: '只支持 http/https 地址' };
       }
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        return { ok: false, error: `下载失败: HTTP ${response.status}` };
-      }
-      const body = Buffer.from(await response.arrayBuffer());
+      const body = await downloadPackageBody(url);
       if (body.byteLength > 20 * 1024 * 1024) {
         return { ok: false, error: '安装包超过 20MB 限制' };
       }
@@ -250,14 +248,77 @@ function createBootstrap(packet: PacketManifest, source: string): string {
   const wrapper = generatePermissionWrapper(packet.permissions);
   return `${wrapper}
 
-const React = window.__37toolbox_react || window.React;
+var React = window.__37toolbox_react || window.React;
 if (!React) {
   throw new Error('React runtime is not available for external plugin');
 }
+window.__37toolbox_react = window.__37toolbox_react || React;
 window.React = window.React || React;
 
 ${source}
 `;
+}
+
+async function downloadPackageBody(url: URL): Promise<Buffer> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/octet-stream, application/zip, */*',
+        'User-Agent': '37toolbox-market/1.0',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return Buffer.from(await response.arrayBuffer());
+  } catch (error) {
+    console.warn('[market:downloadPackage] fetch failed, retrying with node http client:', toErrorMessage(error));
+    return downloadWithNodeHttp(url);
+  }
+}
+
+function downloadWithNodeHttp(url: URL, redirectCount = 0): Promise<Buffer> {
+  if (redirectCount > 5) {
+    return Promise.reject(new Error('下载失败: 重定向次数过多'));
+  }
+
+  const client = url.protocol === 'https:' ? https : http;
+  return new Promise((resolvePromise, reject) => {
+    const request = client.get(url, {
+      headers: {
+        'Accept': 'application/octet-stream, application/zip, */*',
+        'User-Agent': '37toolbox-market/1.0',
+      },
+    }, (response) => {
+      const status = response.statusCode ?? 0;
+      const location = response.headers.location;
+      if ([301, 302, 303, 307, 308].includes(status) && location) {
+        response.resume();
+        resolvePromise(downloadWithNodeHttp(new URL(location, url), redirectCount + 1));
+        return;
+      }
+
+      if (status < 200 || status >= 300) {
+        response.resume();
+        reject(new Error(`下载失败: HTTP ${status}`));
+        return;
+      }
+
+      const chunks: Buffer[] = [];
+      let total = 0;
+      response.on('data', (chunk: Buffer) => {
+        total += chunk.byteLength;
+        if (total > 20 * 1024 * 1024) {
+          request.destroy(new Error('安装包超过 20MB 限制'));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      response.on('end', () => resolvePromise(Buffer.concat(chunks)));
+    });
+    request.setTimeout(30000, () => request.destroy(new Error('下载安装包超时')));
+    request.on('error', reject);
+  });
 }
 
 async function getUserPluginsRoot(): Promise<string> {

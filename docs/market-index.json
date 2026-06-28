@@ -21,9 +21,9 @@
         "novel",
         "sync"
       ],
-      "download_url": "https://github.com/cute-37/37toolbox/releases/latest/download/pixiv-downloader.37tool",
-      "size_bytes": 18432,
-      "sha256": "",
+      "download_url": "https://raw.githubusercontent.com/cute-37/37toolbox/main/docs/packages/pixiv-downloader.37tool",
+      "size_bytes": 12756,
+      "sha256": "5a2a1babd162c14bf5ef5d083914eba493e7446c53783eb5e4e2bb3eb77c1116",
       "created_at": "2026-06-28",
       "min_toolbox_version": "0.4.0",
       "permissions": {
@@ -34,7 +34,8 @@
         "shell": true
       },
       "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/pixiv-downloader",
-      "notes": "需安装 Python 环境 (pixivpy3, requests, tqdm)。首次安装后请先在设置中配置 Python 路径。"
+      "notes": "需安装 Python 环境 (pixivpy3, requests, tqdm)。首次安装后请先在设置中配置 Python 路径。",
+      "updated_at": "2026-06-28"
     },
     {
       "id": "anime-tracker",
@@ -51,16 +52,17 @@
         "yuc",
         "season"
       ],
-      "download_url": "https://github.com/cute-37/37toolbox/releases/download/v0.5.0/anime-tracker-v0.5.0.37tool",
-      "size_bytes": 6517,
-      "sha256": "9ae7392afe4514a8bbaf7a94fecd308b5606178048d94e00a28785fd9aac9b07",
+      "download_url": "https://raw.githubusercontent.com/cute-37/37toolbox/main/docs/packages/anime-tracker.37tool",
+      "size_bytes": 8283,
+      "sha256": "438c242df9cd405f9b98397a17c36805ed67db9cce24fae14d57e3e8e1b17e6c",
       "created_at": "2026-06-28",
       "min_toolbox_version": "0.4.0",
       "permissions": {
         "network": true,
         "clipboard": true
       },
-      "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/anime-tracker"
+      "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/anime-tracker",
+      "updated_at": "2026-06-28"
     }
   ]
 }
