@@ -170,9 +170,15 @@ export function registerMarketHandlers(): void {
 
 function readAndValidatePacket(sourcePath: string): { zip: AdmZip; packet: PacketManifest } {
   const zip = new AdmZip(sourcePath);
-  const files = zip.getEntries()
+  const allEntries = zip.getEntries();
+  console.log('[market] ZIP 文件:', sourcePath, '条目数:', allEntries.length);
+  console.log('[market] ZIP 条目:', allEntries.map((e) => `${e.isDirectory ? 'DIR' : 'FILE'} ${e.entryName}`).join(', '));
+
+  const files = allEntries
     .filter((entry) => !entry.isDirectory)
     .map((entry) => ({ path: normalizeZipPath(entry.entryName), size: entry.header.size }));
+
+  console.log('[market] 规范化文件:', files.map((f) => f.path).join(', '));
 
   const fileCheck = validateFileList(files);
   if (!fileCheck.ok) {
@@ -197,8 +203,11 @@ function readAndValidatePacket(sourcePath: string): { zip: AdmZip; packet: Packe
   }
 
   const entryPath = normalizeZipPath(packetCheck.data.entry);
+  console.log('[market] 寻找入口文件:', entryPath);
+  console.log('[market] 文件列表:', files.map((f) => f.path));
+
   if (!files.some((file) => file.path === entryPath)) {
-    throw new Error(`安装包缺少入口文件: ${packetCheck.data.entry}`);
+    throw new Error(`安装包缺少入口文件: ${packetCheck.data.entry}（包内文件: ${files.map((f) => f.path).join(', ')}）`);
   }
 
   return { zip, packet: { ...packetCheck.data, entry: entryPath } };
@@ -236,6 +245,10 @@ function createBootstrap(packet: PacketManifest, entryPath: string): string {
     external: packet.tool.external ?? false,
   };
   return `${wrapper}
+
+import React from 'react';
+window.__37toolbox_react = React;
+window.React = window.React || React;
 
 export const manifest = ${JSON.stringify(manifest, null, 2)};
 const module = await import(${JSON.stringify(`./${entryPath}`)});
