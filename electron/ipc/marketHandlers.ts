@@ -8,7 +8,8 @@ import AdmZip from 'adm-zip';
 import { app, ipcMain } from 'electron';
 
 import { generatePermissionWrapper, validateFileList, validatePacket } from '../../src/core/packetValidator';
-import type { InstalledPackage, PacketManifest } from '../../src/core/types';
+import type { InstalledPackage, PacketManifest, RemoteMarketIndex } from '../../src/core/types';
+import { MARKET_INDEX_VERSION } from '../../src/core/types';
 
 interface MarketInspectPayload {
   path: string;
@@ -20,6 +21,10 @@ interface MarketInstallPayload {
 }
 
 interface MarketDownloadPayload {
+  url: string;
+}
+
+interface MarketFetchIndexPayload {
   url: string;
 }
 
@@ -41,6 +46,40 @@ type MarketDownloadResult =
 
 /** 注册工具市场安装、下载与卸载 IPC。 */
 export function registerMarketHandlers(): void {
+  ipcMain.handle('market:fetchIndex', async (_event, payload: MarketFetchIndexPayload): Promise<{ ok: true; index: RemoteMarketIndex } | { ok: false; error: string }> => {
+    try {
+      const url = new URL(payload.url);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        return { ok: false, error: '只支持 http/https 地址' };
+      }
+
+      const response = await fetch(payload.url, {
+        headers: { 'Accept': 'application/json', 'Cache-Control': 'max-age=300' },
+      });
+      if (!response.ok) return { ok: false, error: `HTTP ${response.status}` };
+
+      const raw: unknown = await response.json();
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        return { ok: false, error: 'index.json 不是 JSON 对象' };
+      }
+
+      const obj = raw as Record<string, unknown>;
+      if (typeof obj.version !== 'number' || obj.version !== MARKET_INDEX_VERSION) {
+        return { ok: false, error: `index 版本不兼容 (期望 ${MARKET_INDEX_VERSION}, 实际 ${obj.version})` };
+      }
+      if (!Array.isArray(obj.tools)) {
+        return { ok: false, error: '缺少 tools 数组' };
+      }
+      if (typeof obj.marketplace_url !== 'string') {
+        return { ok: false, error: '缺少 marketplace_url' };
+      }
+
+      return { ok: true, index: obj as RemoteMarketIndex };
+    } catch (error) {
+      return { ok: false, error: toErrorMessage(error) };
+    }
+  });
+
   ipcMain.handle('market:inspectPackage', async (_event, payload: MarketInspectPayload): Promise<MarketInspectResult> => {
     try {
       const { packet } = readAndValidatePacket(payload.path);

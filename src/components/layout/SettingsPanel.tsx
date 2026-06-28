@@ -3,7 +3,7 @@
 // 37工具箱 设置面板 — 侧边栏导航 + 分区域设置
 // ================================================================
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { getCategoryLabel, sortCategories } from '../../core/types';
 import type { CategoryDef } from '../../core/types';
@@ -22,7 +22,7 @@ export interface SettingsPanelProps {
   initialSection?: SettingsSection;
 }
 
-type SettingsSection = 'appearance' | 'paths' | 'tools' | 'marketplace' | 'categories' | 'backup' | 'about';
+type SettingsSection = 'appearance' | 'paths' | 'tools' | 'marketplace' | 'categories' | 'backup' | 'diagnostics' | 'about';
 
 interface SectionDef {
   id: SettingsSection;
@@ -37,6 +37,7 @@ const SECTIONS: SectionDef[] = [
   { id: 'marketplace', label: '工具市场', icon: 'inbox' },
   { id: 'categories', label: '分类管理', icon: 'folder' },
   { id: 'backup', label: '配置备份', icon: 'inbox' },
+  { id: 'diagnostics', label: '诊断', icon: 'bug' },
   { id: 'about', label: '关于', icon: 'circle-help' },
 ];
 
@@ -296,8 +297,7 @@ const CategoriesSection: React.FC = () => {
   const addInputRef = useRef<HTMLInputElement>(null);
 
   const sorted = useMemo(() => sortCategories(categories), [categories]);
-  const builtinCount = categories.filter((c) => c.builtin).length;
-  const customCount = categories.length - builtinCount;
+  const totalCount = categories.length;
 
   const toolCount = (catId: string): number =>
     plugins.filter((e) => e.manifest.category === catId).length;
@@ -321,7 +321,7 @@ const CategoriesSection: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-text-secondary">
-          {builtinCount} 个内置分类（锁定） · {customCount} 个自定义分类
+          {totalCount} 个分类（可自由删改）
         </p>
         <Button variant="primary" size="sm" onClick={startAdd}>
           <ToolIcon name="plus" size={14} />
@@ -345,11 +345,11 @@ const CategoriesSection: React.FC = () => {
         </div>
       )}
 
-      {customCount === 0 && (
+      {totalCount <= 6 && (
         <div className="rounded-lg border border-dashed border-border-light bg-bg-primary px-4 py-3">
           <p className="text-sm text-text-secondary">
             <ToolIcon name="lock" size={12} className="inline mr-1 text-text-muted" />
-            6 个内置分类不可重命名或删除。点击「新建分类」创建自定义分类后可自由编辑。
+            所有分类均可自由删改。仅「未分类」为系统兜底不可删除。
           </p>
         </div>
       )}
@@ -358,20 +358,16 @@ const CategoriesSection: React.FC = () => {
         {sorted.map((category) => {
           const count = toolCount(category.id);
           const isEditing = editingId === category.id;
-          const isBuiltin = category.builtin;
+          const isFallback = category.id === '_uncategorized';
           return (
             <div
               key={category.id}
-              className={`grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border px-3 py-2.5 transition ${
-                isBuiltin
-                  ? 'border-border/50 bg-bg-primary/50'
-                  : 'border-border bg-bg-primary hover:border-border-light'
-              }`}
+              className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border bg-bg-primary px-3 py-2.5 transition hover:border-border-light"
             >
               <ToolIcon
-                name={isBuiltin ? 'lock' : 'folder'}
+                name={isFallback ? 'lock' : 'folder'}
                 size={15}
-                className={isBuiltin ? 'text-text-muted shrink-0' : 'text-accent shrink-0'}
+                className={isFallback ? 'text-text-muted shrink-0' : 'text-accent shrink-0'}
               />
               <div className="min-w-0 flex-1">
                 {isEditing ? (
@@ -382,22 +378,24 @@ const CategoriesSection: React.FC = () => {
                   />
                 ) : (
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className={`truncate text-sm leading-none ${isBuiltin ? 'text-text-secondary' : 'text-text-primary'}`}>
+                    <span className="truncate text-sm leading-none text-text-primary">
                       {category.label}
                     </span>
                     <span className="shrink-0 font-mono text-2xs text-text-muted">{count} 个工具</span>
-                    {isBuiltin && (
-                      <span className="shrink-0 rounded-sm border border-border px-1.5 py-0.5 text-2xs text-text-muted">内置</span>
+                    {isFallback && (
+                      <span className="shrink-0 rounded-sm border border-border px-1.5 py-0.5 text-2xs text-text-muted">兜底</span>
                     )}
                   </div>
                 )}
               </div>
-              {!isEditing && !isBuiltin && (
+              {!isEditing && (
                 <div className="flex shrink-0 gap-1">
                   <Button variant="ghost" size="sm" className="whitespace-nowrap" onClick={(): void => setEditingId(category.id)}>重命名</Button>
-                  <Button variant="ghost" size="sm" onClick={(): void => setDeleteTarget(category)}>
-                    <span className="whitespace-nowrap text-status-error">删除</span>
-                  </Button>
+                  {!isFallback && (
+                    <Button variant="ghost" size="sm" onClick={(): void => setDeleteTarget(category)}>
+                      <span className="whitespace-nowrap text-status-error">删除</span>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -408,7 +406,7 @@ const CategoriesSection: React.FC = () => {
       {deleteTarget && (
         <ConfirmDialog
           title={`删除「${deleteTarget.label}」`}
-          message={`该分类下的 ${toolCount(deleteTarget.id)} 个工具将被移到「${getCategoryLabel(categories, 'custom')}」分类，确定删除？`}
+          message={`该分类下的 ${toolCount(deleteTarget.id)} 个工具将被移到「未分类」分类，确定删除？`}
           confirmLabel="删除"
           danger
           onConfirm={(): void => { removeCategory(deleteTarget.id); setDeleteTarget(null); }}
@@ -629,6 +627,95 @@ const BackupSection: React.FC = () => {
 };
 
 // ======================================================================
+// Section: Diagnostics
+// ======================================================================
+
+const DiagnosticsSection: React.FC = () => {
+  const [report, setReport] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [logsOpen, setLogsOpen] = useState(false);
+  const [logFiles, setLogFiles] = useState<{ name: string; path: string }[]>([]);
+
+  const generateReport = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const text = await (window as any).toolbox?.app?.exportErrorReport?.() ?? '(无法生成)';
+      setReport(typeof text === 'string' ? text : String(text));
+      setLogsOpen(true);
+    } catch { setReport('生成报告失败'); }
+    setLoading(false);
+  };
+
+  const copyReport = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(report || '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  useEffect(() => {
+    generateReport();
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-lg border border-border bg-bg-primary px-5 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary">错误诊断与报告</h3>
+            <p className="mt-1 text-xs text-text-secondary">收集应用运行信息，方便反馈给开发者排查问题。</p>
+          </div>
+          <Button variant="primary" size="sm" onClick={generateReport}>刷新</Button>
+        </div>
+
+        <div className="flex gap-2 mb-3">
+          <Button variant="secondary" size="sm" onClick={copyReport}>
+            {copied ? '已复制' : '复制完整报告'}
+          </Button>
+        </div>
+
+        {loading ? (
+          <p className="text-xs text-text-muted">正在生成诊断报告...</p>
+        ) : (
+          <>
+            <pre className="max-h-80 overflow-auto rounded-md border border-border bg-bg-sidebar p-3 font-mono text-2xs text-text-secondary leading-relaxed whitespace-pre-wrap select-all">
+              {report || '(无诊断数据)'}
+            </pre>
+            {report.length > 0 && (
+              <p className="mt-2 text-2xs text-text-muted">
+                将上方报告复制发送给开发者以帮助排查问题。不包含个人信息。
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* 日志文件列表 */}
+      <div className="rounded-lg border border-border bg-bg-primary px-5 py-4">
+        <h3 className="text-sm font-semibold text-text-primary mb-3">日志文件</h3>
+        <ul className="space-y-1 text-xs">
+          {logFiles.length > 0 ? logFiles.map((f) => (
+            <li key={f.name} className="flex items-center gap-2 rounded-sm px-2 py-1 bg-bg-secondary">
+              <ToolIcon name="file-text" size={12} className="text-text-muted shrink-0" />
+              <span className="truncate font-mono text-text-secondary flex-1">{f.name}</span>
+              <span className="text-text-muted shrink-0">{f.path}</span>
+            </li>
+          )) : (
+            <p className="text-text-muted">暂无日志文件（应用运行正常时会记录错误信息）。</p>
+          )}
+        </ul>
+      </div>
+
+      <p className="text-center text-2xs text-text-muted">
+        日志保存路径: %APPDATA%/37工具箱/error-logs/
+      </p>
+    </div>
+  );
+};
+
+// ======================================================================
 // Section: About
 // ======================================================================
 
@@ -686,7 +773,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onClose, ini
     tools: ToolsSection,
     marketplace: MarketplaceTab,
     categories: CategoriesSection,
-    backup: BackupSection,
+    diagnostics: DiagnosticsSection,
     about: AboutSection,
   }[section]!;
 

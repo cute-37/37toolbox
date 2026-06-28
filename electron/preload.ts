@@ -31,6 +31,10 @@ interface AppAPI {
   quit: () => Promise<void>;
   toggleDevTools: () => Promise<void>;
   reportError: (payload: { level: string; source: string; message: string; stack?: string }) => void;
+  exportErrorReport: () => Promise<string>;
+  getErrorLogPath: () => Promise<string>;
+  listErrorLogs: () => Promise<{ name: string; path: string }[]>;
+  readErrorLog: (filePath: string) => Promise<string>;
 }
 
 interface WindowAPI {
@@ -71,6 +75,7 @@ interface MarketDownloadResult {
 }
 
 interface MarketAPI {
+  fetchIndex: (url: string) => Promise<{ ok: true; index: unknown } | { ok: false; error: string }>;
   inspectPackage: (path: string) => Promise<MarketInspectResult>;
   installPackage: (sourcePath: string, expectedId: string) => Promise<MarketInstallResult>;
   downloadPackage: (url: string) => Promise<MarketDownloadResult>;
@@ -125,6 +130,18 @@ const appApi: AppAPI = {
   reportError(payload: { level: string; source: string; message: string; stack?: string }): void {
     ipcRenderer.send('error:report', payload);
   },
+  exportErrorReport(): Promise<string> {
+    return ipcRenderer.invoke('error:exportReport');
+  },
+  getErrorLogPath(): Promise<string> {
+    return ipcRenderer.invoke('error:logPath');
+  },
+  listErrorLogs(): Promise<{ name: string; path: string }[]> {
+    return ipcRenderer.invoke('error:listLogs');
+  },
+  readErrorLog(filePath: string): Promise<string> {
+    return ipcRenderer.invoke('error:readLog', filePath);
+  },
 };
 
 const windowApi: WindowAPI = {
@@ -158,6 +175,9 @@ const colorApi: ColorAPI = {
 };
 
 const marketApi: MarketAPI = {
+  fetchIndex(url: string): Promise<{ ok: true; index: unknown } | { ok: false; error: string }> {
+    return ipcRenderer.invoke('market:fetchIndex', { url });
+  },
   inspectPackage(path: string): Promise<MarketInspectResult> {
     return ipcRenderer.invoke('market:inspectPackage', { path });
   },

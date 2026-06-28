@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "updated": "2026-06-28",
+  "name": "37工具箱 官方市场",
+  "description": "37工具箱的官方工具市场。托管于 GitHub，CI 自动更新。欢迎社区提交 PR 添加自己的工具。",
+  "marketplace_url": "https://raw.githubusercontent.com/cute-37/37toolbox/main/docs/market-index.json",
+  "tools": []
+}

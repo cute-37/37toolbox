@@ -14,29 +14,33 @@ import type React from 'react';
 
 /**
  * 分类定义。
- * v0.2 起分类不再是硬编码枚举，而是运行时可编辑的数据。
- * 内置分类不可删除、不可改 id。
+ * v0.5 起所有分类均可删除，仅系统级"未分类"兜底不可删。
  */
 export interface CategoryDef {
-  /** 唯一 ID，kebab-case。内置分类 id 固定为 'daily'/'image'/'text'/'dev'/'download'/'custom' */
   id: string;
-  /** 显示名称 */
   label: string;
-  /** 排序权重，数值越小越靠前 */
   order: number;
-  /** 内置为 true 的分类不可删除、不可改 id */
+  /** 系统级兜底分类不可删除。其余均可。 */
   builtin: boolean;
 }
 
-/** 内置分类预设（侧边栏默认分类） */
+/** 内置分类预设。v0.5 起只保留一个兜底"未分类"。 */
 export const BUILTIN_CATEGORIES: CategoryDef[] = [
-  { id: 'daily',    label: '日常效率', order: 0, builtin: true },
-  { id: 'image',    label: '图片处理', order: 1, builtin: true },
-  { id: 'text',     label: '文本处理', order: 2, builtin: true },
-  { id: 'dev',      label: '编码开发', order: 3, builtin: true },
-  { id: 'download', label: '下载工具', order: 4, builtin: true },
-  { id: 'custom',   label: '我的工具', order: 99, builtin: true },
+  { id: 'daily',    label: '日常效率', order: 0, builtin: false },
+  { id: 'image',    label: '图片处理', order: 1, builtin: false },
+  { id: 'text',     label: '文本处理', order: 2, builtin: false },
+  { id: 'dev',      label: '编码开发', order: 3, builtin: false },
+  { id: 'download', label: '下载工具', order: 4, builtin: false },
+  { id: 'custom',   label: '我的工具', order: 5, builtin: false },
 ];
+
+/** 系统级兜底分类。所有被删除分类下的工具默认移入此处。此分类不可删除。 */
+export const FALLBACK_CATEGORY: CategoryDef = {
+  id: '_uncategorized',
+  label: '未分类',
+  order: 999,
+  builtin: true,
+};
 
 /**
  * 工具分类。
@@ -250,6 +254,15 @@ export interface PluginManagerAPI {
 
   /** 获取已安装的外部工具包列表 */
   getInstalledPackages(): InstalledPackage[];
+
+  /** 从远程 URL 拉取工具市场 index（含 5 分钟缓存） */
+  fetchRemoteIndex(sourceUrl: string): Promise<{ ok: true; index: RemoteMarketIndex } | { ok: false; error: string }>;
+
+  /** 获取缓存的远程市场数据 */
+  getCachedIndex(): RemoteMarketIndex | null;
+
+  /** 在缓存的远程市场中搜索工具 */
+  searchRemoteTools(query: string): RemoteToolEntry[];
 }
 
 // ======================================================================
@@ -446,7 +459,56 @@ export interface MarketplaceAPI {
 }
 
 // ======================================================================
-// 十一、通用工具类型
+// 十一、远程工具市场类型（v0.5）
+// ======================================================================
+
+/** 远程市场 index 的顶层结构。MARKET_INDEX_VERSION 判定字段。 */
+export const MARKET_INDEX_VERSION = 1;
+
+/** 远程市场中的单个工具条目。比 PacketManifest 更精简，仅包含展示+下载所需字段。 */
+export interface RemoteToolEntry {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author?: string;
+  category: string;
+  icon: string;
+  tags: string[];
+  download_url: string;
+  size_bytes: number;
+  sha256?: string;
+  created_at: string;
+  updated_at?: string;
+  min_toolbox_version: string;
+  screenshots?: string[];
+  permissions: Partial<Record<Permission, boolean>>;
+  homepage?: string;
+  repository?: string;
+  downloads_count?: number;
+  rating?: number;
+}
+
+/** 远程市场 index.json 完整格式 */
+export interface RemoteMarketIndex {
+  version: number;
+  updated: string;
+  name?: string;
+  description?: string;
+  marketplace_url: string;
+  tools: RemoteToolEntry[];
+}
+
+/** 远程市场缓存记录 (localStorage key: `37toolbox:market-cache`) */
+export interface MarketCache {
+  sourceUrl: string;
+  fetchedAt: string;
+  index: RemoteMarketIndex;
+  etag?: string;
+}
+
+// ======================================================================
+// 十二、通用工具类型
 // ======================================================================
 
 /** 标准结果包装。引擎函数推荐使用此类型。 */

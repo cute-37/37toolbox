@@ -4,6 +4,8 @@ export type { ButtonProps } from './Button';
 export { ContextMenu } from './ContextMenu';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
+export { ErrorReportDialog } from './ErrorReportDialog';
+export type { ErrorReportDialogProps } from './ErrorReportDialog';
 export { Input } from './Input';
 export type { InputProps } from './Input';
 export { PermissionDialog } from './PermissionDialog';

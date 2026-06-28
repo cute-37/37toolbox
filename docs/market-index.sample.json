@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "updated": "2026-06-28",
+  "name": "37工具箱 官方市场",
+  "description": "37工具箱的官方工具市场，收集社区贡献的优质工具。",
+  "marketplace_url": "https://raw.githubusercontent.com/cute-37/37toolbox/main/docs/market-index.json",
+  "tools": [
+    {
+      "id": "example-tool",
+      "name": "示例工具",
+      "description": "这是一个示例工具，展示 market index 格式",
+      "version": "1.0.0",
+      "author": "cute-37",
+      "category": "custom",
+      "icon": "zap",
+      "tags": ["example", "demo"],
+      "download_url": "https://github.com/cute-37/37toolbox/releases/download/v0.4.0/example-tool.37tool",
+      "size_bytes": 10240,
+      "sha256": "replace_with_real_sha256",
+      "created_at": "2026-06-28",
+      "min_toolbox_version": "0.4.0",
+      "permissions": {
+        "clipboard": true
+      },
+      "homepage": "https://github.com/cute-37/37toolbox"
+    }
+  ]
+}

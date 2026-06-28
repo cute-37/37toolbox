@@ -1,7 +1,7 @@
 // @author: codex | phase: v0.2 | core: plugin-manager
 import { builtinPluginRegistry } from './pluginRegistry';
-import { BUILTIN_CATEGORIES, sortCategories } from './types';
-import type { CategoryDef, InstalledPackage, PacketManifest, PluginManagerAPI, PluginRegistryEntry, ToolManifest, ToolModule } from './types';
+import { BUILTIN_CATEGORIES, FALLBACK_CATEGORY, sortCategories } from './types';
+import type { CategoryDef, InstalledPackage, MarketCache, PacketManifest, PluginManagerAPI, PluginRegistryEntry, RemoteMarketIndex, RemoteToolEntry, ToolManifest, ToolModule } from './types';
 
 const STORAGE_PREFIX = '37toolbox:';
 const HIDDEN_TOOLS_KEY = `${STORAGE_PREFIX}hidden-tools`;
@@ -9,6 +9,7 @@ const CATEGORIES_KEY = `${STORAGE_PREFIX}categories`;
 const TOOL_CATEGORIES_KEY = `${STORAGE_PREFIX}tool-categories`;
 const TOOL_ORDER_KEY = `${STORAGE_PREFIX}tool-order`;
 const INSTALLED_PACKAGES_KEY = `${STORAGE_PREFIX}installed`;
+const MARKET_CACHE_KEY = `${STORAGE_PREFIX}market-cache`;
 
 type InstalledPackageRecord = InstalledPackage & {
   name?: string;
@@ -163,9 +164,14 @@ export class PluginManager implements PluginManagerAPI {
     return this.hiddenTools.has(id);
   }
 
-  /** 获取分类。 */
+  /** 获取分类（兜底分类永远在末尾）。 */
   getCategories(): CategoryDef[] {
-    return sortCategories(this.categories);
+    const sorted = sortCategories(
+      this.categories.filter((cat) => cat.id !== FALLBACK_CATEGORY.id),
+    );
+    const fallback = this.categories.find((cat) => cat.id === FALLBACK_CATEGORY.id);
+    if (fallback) sorted.push(fallback);
+    return sorted;
   }
 
   /** 新增分类。 */
@@ -189,16 +195,21 @@ export class PluginManager implements PluginManagerAPI {
     this.saveCategories();
   }
 
-  /** 删除分类，分类下工具移到 custom。 */
+  /** 删除分类，分类下工具自动移到"未分类"兜底。兜底分类自身不可删除。 */
   removeCategory(id: string): void {
+    if (id === FALLBACK_CATEGORY.id) {
+      return; // 兜底分类不可删除
+    }
     const category = this.categories.find((item) => item.id === id);
-    if (!category || category.builtin) {
+    if (!category) {
       return;
     }
     this.categories = this.categories.filter((item) => item.id !== id);
+    const fallbackId = FALLBACK_CATEGORY.id;
+    this.ensureFallbackCategory();
     this.registry.forEach((entry, toolId): void => {
       if (entry.manifest.category === id) {
-        this.setToolCategoryInMemory(toolId, 'custom');
+        this.setToolCategoryInMemory(toolId, fallbackId);
       }
     });
     this.normalizeCategoryOrder();
@@ -414,12 +425,25 @@ export class PluginManager implements PluginManagerAPI {
   private loadCategories(): void {
     const saved = localStorage.getItem(CATEGORIES_KEY);
     const parsed = readUnknownArray(saved).filter(isCategoryDef);
-    const custom = parsed.filter((category) => !BUILTIN_CATEGORIES.some((builtin) => builtin.id === category.id));
-    this.categories = sortCategories([...BUILTIN_CATEGORIES, ...custom]);
+    // 保留用户自定义类别 + 首次安装用内置预设
+    const userCategories = parsed.length > 0
+      ? parsed.filter((cat) => cat.id !== FALLBACK_CATEGORY.id)
+      : BUILTIN_CATEGORIES.filter((cat) => cat.id !== FALLBACK_CATEGORY.id);
+    this.categories = sortCategories(userCategories);
+    this.ensureFallbackCategory();
   }
 
   private saveCategories(): void {
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(this.categories.filter((category) => !category.builtin)));
+    const withoutFallback = this.categories.filter((category) => category.id !== FALLBACK_CATEGORY.id);
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(withoutFallback));
+  }
+
+  private ensureFallbackCategory(): void {
+    const exists = this.categories.some((cat) => cat.id === FALLBACK_CATEGORY.id);
+    if (!exists) {
+      this.categories.push({ ...FALLBACK_CATEGORY });
+      this.normalizeCategoryOrder();
+    }
   }
 
   private loadToolCategories(): void {
@@ -506,6 +530,65 @@ export class PluginManager implements PluginManagerAPI {
   private findLatestInstalledId(): string | null {
     const latest = [...this.getInstalledPackages()].sort((left, right) => right.installDate.localeCompare(left.installDate))[0];
     return latest?.id ?? null;
+  }
+
+  // ====== 远程市场 ======
+
+  /** 从远程 URL 拉取工具市场 index，含 5 分钟本地缓存。 */
+  async fetchRemoteIndex(sourceUrl: string): Promise<{ ok: true; index: RemoteMarketIndex } | { ok: false; error: string }> {
+    const marketApi = window.toolbox?.market;
+    if (!marketApi) return { ok: false, error: '当前环境不支持远程市场' };
+
+    // 检查本地缓存
+    try {
+      const cacheRaw = localStorage.getItem(MARKET_CACHE_KEY);
+      if (cacheRaw) {
+        const cache: MarketCache = JSON.parse(cacheRaw);
+        const age = Date.now() - new Date(cache.fetchedAt).getTime();
+        if (cache.sourceUrl === sourceUrl && age < 5 * 60 * 1000) {
+          return { ok: true, index: cache.index };
+        }
+      }
+    } catch { /* cache invalid, refetch */ }
+
+    const result = await marketApi.fetchIndex(sourceUrl);
+    if (!result.ok || !result.index) {
+      return { ok: false, error: (result as { error?: string }).error ?? '获取市场数据失败' };
+    }
+
+    const index = result.index as RemoteMarketIndex;
+
+    // 写入缓存
+    try {
+      localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({ sourceUrl, fetchedAt: new Date().toISOString(), index }));
+    } catch { /* storage full, ignore */ }
+
+    return { ok: true, index };
+  }
+
+  /** 获取缓存的远程市场数据（不发起请求）。 */
+  getCachedIndex(): RemoteMarketIndex | null {
+    try {
+      const raw = localStorage.getItem(MARKET_CACHE_KEY);
+      return raw ? (JSON.parse(raw) as MarketCache).index : null;
+    } catch { return null; }
+  }
+
+  /** 在缓存的远程市场中搜索工具。 */
+  searchRemoteTools(query: string): RemoteToolEntry[] {
+    const cached = this.getCachedIndex();
+    if (!cached) return [];
+    const q = query.trim().toLowerCase();
+    if (!q) return cached.tools;
+    return cached.tools.filter((t) => {
+      const fields = [t.name, t.description, ...t.tags];
+      return fields.some((f) => f.toLowerCase().includes(q));
+    });
+  }
+
+  /** 从远程 URL 安装工具（下载 .37tool → installFromPath）。 */
+  async installFromRemote(url: string, toolId: string, downloadUrl: string): Promise<{ ok: boolean; error?: string }> {
+    return this.installFromUrl(downloadUrl);
   }
 }
 

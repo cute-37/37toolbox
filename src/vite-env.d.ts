@@ -27,6 +27,10 @@ interface Window {
       quit: () => Promise<void>;
       toggleDevTools?: () => Promise<void>;
       reportError?: (payload: { level: string; source: string; message: string; stack?: string }) => void;
+      exportErrorReport?: () => Promise<string>;
+      getErrorLogPath?: () => Promise<string>;
+      listErrorLogs?: () => Promise<{ name: string; path: string }[]>;
+      readErrorLog?: (filePath: string) => Promise<string>;
     };
     shell?: {
       openExternal: (url: string) => Promise<void>;
