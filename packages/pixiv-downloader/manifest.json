@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "id": "pixiv-downloader",
+    "name": "Pixiv 下载",
+    "description": "Pixiv 画师作品下载与同步",
+    "category": "download",
+    "version": "2.0.0",
+    "icon": "download",
+    "tags": ["pixiv", "download", "illust", "ugoira", "novel", "sync"],
+    "hasSettings": true,
+    "defaultSettings": {
+      "storageMode": "local",
+      "localSavePath": "",
+      "downloadThreads": 4,
+      "ugoiraOutput": "gif",
+      "rateLimitEnabled": true
+    }
+  },
+  "author": {
+    "name": "cute-37",
+    "url": "https://github.com/cute-37/37toolbox"
+  },
+  "entry": "index.js",
+  "permissions": {
+    "file_read": true,
+    "file_write": true,
+    "clipboard": true,
+    "network": true,
+    "shell": true
+  },
+  "compatibility": {
+    "toolbox_min": "0.4.0"
+  }
+}

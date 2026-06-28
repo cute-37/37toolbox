@@ -2,7 +2,28 @@
   "version": 1,
   "updated": "2026-06-28",
   "name": "37工具箱 官方市场",
-  "description": "37工具箱的官方工具市场。托管于 GitHub，CI 自动更新。欢迎社区提交 PR 添加自己的工具。",
+  "description": "37工具箱的官方工具市场。社区贡献请提交 PR 修改本文件，并在 packages/ 下创建工具目录。",
   "marketplace_url": "https://raw.githubusercontent.com/cute-37/37toolbox/main/docs/market-index.json",
-  "tools": []
+  "tools": [
+    {
+      "id": "anime-tracker",
+      "name": "追番日程表",
+      "description": "制作属于自己的追番列表，导出为图片",
+      "version": "1.0.0",
+      "author": "cute-37",
+      "category": "daily",
+      "icon": "calendar",
+      "tags": ["anime", "tracker", "schedule", "yuc", "season"],
+      "download_url": "https://github.com/cute-37/37toolbox/releases/latest/download/anime-tracker.37tool",
+      "size_bytes": 0,
+      "created_at": "2026-06-28",
+      "min_toolbox_version": "0.4.0",
+      "permissions": {
+        "network": true,
+        "clipboard": true
+      },
+      "homepage": "https://github.com/cute-37/37toolbox/tree/main/packages/anime-tracker",
+      "screenshots": []
+    }
+  ]
 }

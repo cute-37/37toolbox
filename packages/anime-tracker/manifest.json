@@ -1,0 +1,25 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "id": "anime-tracker",
+    "name": "追番日程表",
+    "description": "制作属于自己的追番列表",
+    "category": "daily",
+    "version": "1.0.0",
+    "icon": "calendar",
+    "tags": ["anime", "tracker", "schedule", "yuc"],
+    "hasSettings": false
+  },
+  "author": {
+    "name": "cute-37",
+    "url": "https://github.com/cute-37/37toolbox"
+  },
+  "entry": "index.js",
+  "permissions": {
+    "network": true,
+    "clipboard": true
+  },
+  "compatibility": {
+    "toolbox_min": "0.4.0"
+  }
+}
